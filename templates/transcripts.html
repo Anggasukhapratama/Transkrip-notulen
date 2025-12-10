@@ -1,0 +1,23 @@
+{% extends "_base.html" %}
+{% block content %}
+<section class="card">
+  <h2>📚 Semua Transkrip</h2>
+  {% if rows %}
+    <table class="table">
+      <thead><tr><th>Waktu</th><th>Program</th><th>File</th><th></th></tr></thead>
+      <tbody>
+      {% for t in rows %}
+        <tr>
+          <td class="muted">{{ t['created_at'] }}</td>
+          <td>{{ t['program'] }}</td>
+          <td class="muted">{{ t['filename'] }}</td>
+          <td><a href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}">Lihat</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="muted">Belum ada data.</div>
+    {% endif %}
+</section>
+{% endblock %}

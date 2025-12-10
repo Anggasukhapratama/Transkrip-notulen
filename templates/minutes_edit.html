@@ -1,0 +1,104 @@
+{# my_flask_app/templates/minutes_edit.html #}
+{% extends "_base.html" %}
+{% block content %}
+<section class="card">
+  <h2>✏️ Edit Header Notulen</h2>
+
+  <!-- Upload logo -->
+  <form class="inline" method="post" action="{{ url_for('minutes_bp.upload_logo') }}" enctype="multipart/form-data">
+    <input type="file" name="logo" accept="image/*" required>
+    <input type="hidden" name="redirect" value="{{ request.url }}">
+    <button class="btn" type="submit">⬆️ Upload Logo</button>
+    {% if request.args.get('logo') %}
+      <span class="muted">Terunggah: {{ request.args.get('logo') }}</span>
+    {% endif %}
+  </form>
+
+  <form method="post" action="{{ url_for('minutes_bp.minutes_edit_save', tid=tid) }}" class="form-grid" style="margin-top:12px">
+    <label>Instansi/Kop Surat<br><textarea name="instansi" rows="3">{{ meta.instansi }}</textarea></label>
+    <label>Alamat/Kontak<br><input type="text" name="alamat" value="{{ meta.alamat }}"></label>
+    <label>Judul Dokumen<br><input type="text" name="judul" value="{{ meta.judul }}"></label>
+    <label>Nomor<br><input type="text" name="nomor" value="{{ meta.nomor }}"></label>
+
+    <div class="grid2">
+      <label>Hari<br><input type="text" name="hari" value="{{ meta.hari }}"></label>
+      <label>Tanggal<br><input type="text" name="tanggal" value="{{ meta.tanggal }}"></label>
+      <label>Waktu<br><input type="text" name="waktu" value="{{ meta.waktu }}"></label>
+      <label>Tempat<br><input type="text" name="tempat" value="{{ meta.tempat }}"></label>
+      <label>Pimpinan Rapat<br><input type="text" name="pimpinan" value="{{ meta.pimpinan }}"></label>
+      <label>Notulis<br><input type="text" name="notulis" value="{{ meta.notulis }}"></label>
+    </div>
+
+    <label>Logo (URL relatif, contoh: <code>/uploads/logo_xxx.png</code>)<br>
+      <input type="text" name="logo" value="{{ meta.logo }}">
+    </label>
+
+    <label>Header HTML kustom (opsional). Jika diisi, menggantikan kop default.<br>
+      <textarea name="kop_html" rows="6" placeholder="<div style='text-align:center'>... HTML anda ...</div>">{{ meta.kop_html }}</textarea>
+    </label>
+
+    <!-- BARU: Field untuk tanda tangan -->
+    <h3 style="margin-top:8px">Tanda Tangan</h3>
+    <div class="grid2">
+      <label>Jabatan Penanda Tangan<br>
+        <input type="text" name="ttd_jabatan" value="{{ meta.ttd_jabatan }}">
+      </label>
+      <label>Nama Penanda Tangan<br>
+        <input type="text" name="ttd_nama" value="{{ meta.ttd_nama }}">
+      </label>
+      <label>Pangkat/Golongan<br>
+        <input type="text" name="ttd_pangkat" value="{{ meta.ttd_pangkat }}">
+      </label>
+      <label>NIP<br>
+        <input type="text" name="ttd_nip" value="{{ meta.ttd_nip }}">
+      </label>
+    </div>
+    <!-- AKHIR BARU -->
+
+    <!-- ========== Tambahan: Kata Kunci Custom untuk Klasifikasi ========== -->
+    <h3 style="margin-top:8px">Kata Kunci Tambahan (opsional)</h3>
+    <p class="muted">
+      Isi dengan <b>koma</b> (mis: <i>pengesahan KUA PPAS, menetapkan pagu</i>) atau <b>JSON array</b>
+      (mis: <code>["pengesahan KUA PPAS","menetapkan pagu"]</code>).
+    </p>
+
+    <div class="grid2">
+      <label>Keputusan<br>
+        <textarea name="kw_keputusan" rows="2" placeholder="contoh: pengesahan KUA PPAS, menetapkan pagu, menyetujui TAPD">{{ (meta.kw_keputusan or [])|join(', ') }}</textarea>
+      </label>
+
+      <label>Tindak Lanjut<br>
+        <textarea name="kw_tindak_lanjut" rows="2" placeholder="contoh: menginput SIPD, menyusun RKA, kirim surat ke BPK">{{ (meta.kw_tindak_lanjut or [])|join(', ') }}</textarea>
+      </label>
+
+      <label>Isu/Kendala<br>
+        <textarea name="kw_isu" rows="2" placeholder="contoh: keterlambatan data, kendala anggaran">{{ (meta.kw_isu or [])|join(', ') }}</textarea>
+      </label>
+
+      <label>Arahan<br>
+        <textarea name="kw_arahan" rows="2">{{ (meta.kw_arahan or [])|join(', ') }}</textarea>
+      </label>
+
+      <label>Catatan<br>
+        <textarea name="kw_catatan" rows="2">{{ (meta.kw_catatan or [])|join(', ') }}</textarea>
+      </label>
+    </div>
+    <!-- ========== /Tambahan ========== -->
+
+    <div class="form-actions" style="margin-top:10px">
+      <button class="btn" type="submit">💾 Simpan</button>
+      <a class="btn" href="{{ url_for('minutes_bp.transcript_minutes', tid=tid) }}">↩ Kembali</a>
+    </div>
+  </form>
+</section>
+
+<style>
+.form-grid label{ display:block; margin-bottom:10px; }
+.form-grid input, .form-grid textarea{
+  width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;
+}
+.grid2{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+.inline{ display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+.muted{ color:#6b7280; font-size:0.95em; }
+</style>
+{% endblock %}

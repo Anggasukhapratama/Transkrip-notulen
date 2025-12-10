@@ -1,0 +1,339 @@
+/* =======================================
+   Sebayu FM – Soft Blue Tegal Theme
+   Cerah • Modern • Profesional
+   ======================================= */
+
+/* ---------- Variables ---------- */
+:root{
+  --bg:#f1f6ff;
+  --surface:#ffffff;
+  --surface-soft:#f7faff;
+  --border:#d1def5;
+
+  --text:#1f2933;
+  --muted:#64748b;
+
+  --blue:#2563eb;
+  --blue-soft:#3b82f6;
+  --blue-pale:#dbeafe;
+  --danger:#ef4444;
+
+  --shadow:0 10px 30px rgba(15,23,42,.1);
+  --radius:16px;
+  --radius-xl:20px;
+}
+
+/* ---------- Reset ---------- */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+  background:
+    radial-gradient(900px 600px at 0% 0%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(1000px 650px at 100% 0%, rgba(56,189,248,.22), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- Layout Shell ---------- */
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:20px 18px 26px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{
+  max-width:1100px;
+  margin:0 auto;
+  padding:10px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{
+  font-size:1.25rem;
+  font-weight:700;
+  color:var(--blue);
+}
+.nav{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.nav a{
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:.9rem;
+  color:var(--muted);
+}
+.nav a:hover{
+  background:var(--surface-soft);
+  color:var(--blue);
+}
+.nav a.active{
+  background:var(--blue);
+  color:#fff !important;
+}
+
+/* ---------- Footer ---------- */
+.footer{
+  border-top:1px solid var(--border);
+  margin-top:26px;
+  padding:14px 0 4px;
+  font-size:.85rem;
+  color:var(--muted);
+}
+
+/* ---------- Cards & layout ---------- */
+.card{
+  background:var(--surface);
+  border-radius:var(--radius-xl);
+  border:1px solid var(--border);
+  padding:18px 18px 16px;
+  box-shadow:var(--shadow);
+}
+.card h2{
+  margin-bottom:6px;
+  font-size:1.25rem;
+  color:var(--blue);
+}
+
+/* Home index: atas–bawah */
+.home-stack{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* Grid umum (untuk form dsb) */
+.grid{display:grid;gap:18px}
+@media (min-width:980px){
+  .grid{grid-template-columns:1fr 1fr}
+}
+
+/* ---------- Typography helpers ---------- */
+.muted{color:var(--muted);font-size:.9rem}
+.hint{margin-top:6px;color:var(--muted);font-size:.9rem}
+
+/* ---------- Buttons ---------- */
+.btn{
+  background:var(--blue);
+  color:#fff;
+  border:0;
+  padding:9px 15px;
+  border-radius:999px;
+  font-size:.9rem;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  box-shadow:0 6px 18px rgba(37,99,235,.3);
+  transition:background .18s, transform .1s, box-shadow .18s;
+}
+.btn:hover{
+  background:var(--blue-soft);
+  box-shadow:0 8px 22px rgba(37,99,235,.36);
+}
+.btn:active{
+  transform:scale(.98);
+  box-shadow:0 3px 10px rgba(37,99,235,.26);
+}
+.btn:disabled{opacity:.65;cursor:not-allowed;box-shadow:none}
+
+/* Bahaya / hapus */
+.btn-danger{
+  background:var(--danger);
+  box-shadow:0 6px 18px rgba(239,68,68,.3);
+}
+.btn-danger:hover{background:#dc2626}
+
+/* ---------- Form controls ---------- */
+.form-grid{display:grid;gap:12px;margin-top:6px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+label{font-size:.9rem;color:var(--muted)}
+
+input[type="text"],
+input[type="file"],
+select,
+textarea{
+  font-size:.93rem;
+  border-radius:10px;
+  border:1px solid var(--border);
+  padding:9px 11px;
+  background:#ffffff;
+  resize:vertical;
+}
+textarea{min-height:80px}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.2);
+}
+input::file-selector-button{
+  padding:7px 12px;
+  border-radius:8px;
+  border:0;
+  background:var(--blue);
+  color:#fff;
+  cursor:pointer;
+}
+
+.inline{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.radio,.check{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  font-size:.9rem;
+}
+.check input{margin-top:3px}
+
+/* ---------- Actions bar (baris tombol) ---------- */
+.actions{
+  margin-top:14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.75rem;
+}
+.actions form{margin:0}
+
+/* ---------- PRE (kotak teks panjang: ringkasan, transkrip, dll) ---------- */
+.pre{
+  display:block;
+  white-space:pre-wrap;
+  background:#ffffff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:.9rem;
+  color:var(--text);
+
+  max-height:360px;
+  overflow:auto;
+
+  margin-top:6px;
+  margin-bottom:12px;
+}
+
+/* ---------- Tables ---------- */
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:8px;
+  font-size:.9rem;
+}
+.table th{
+  text-align:left;
+  padding:9px 10px;
+  background:var(--surface-soft);
+  color:var(--muted);
+  border-bottom:1px solid var(--border);
+}
+.table td{
+  padding:9px 10px;
+  border-bottom:1px solid var(--border);
+}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:#eef3ff}
+
+/* ---------- Notulen: kop & header ---------- */
+.kop{
+  text-align:center;
+  margin-bottom:6px;
+}
+.kop .kop-logo{
+  height:64px;
+  display:block;
+  margin:0 auto 8px;
+}
+.kop .instansi{
+  font-weight:800;
+  text-transform:uppercase;
+}
+.kop .alamat{
+  color:#6b7280;
+  margin-top:2px;
+}
+.meta-grid{
+  display:grid;
+  gap:6px;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:12px 14px;
+  margin:10px 0 6px;
+}
+
+/* Notulen: list (Agenda, Keputusan, dsb) */
+.card ol,
+.card ul{
+  margin-top:4px;
+  margin-bottom:8px;
+  margin-left:1.4rem;   /* supaya angka/bullet nggak nempel tepi */
+  padding-left:0;
+  list-style-position:outside;
+}
+
+/* ---------- Flash / alerts ---------- */
+.flash{
+  background:var(--blue-pale);
+  border-left:4px solid var(--blue);
+  padding:10px 12px;
+  border-radius:10px;
+  color:#1e3a8a;
+  font-size:.9rem;
+  margin-bottom:12px;
+}
+
+/* ---------- Misc / utilities ---------- */
+hr{
+  border:0;
+  height:1px;
+  background:var(--border);
+  margin:14px 0;
+}
+.hidden{display:none!important}
+
+/* ---------- Small screens ---------- */
+@media (max-width:640px){
+  .container{padding:16px 12px 22px}
+  .card{padding:16px 14px}
+  .topbar-inner{padding-inline:12px}
+}
+
+/* ---------- Print for notulen / editor ---------- */
+@media print{
+  .topbar,
+  .footer,
+  .btn{
+    display:none !important;
+  }
+  body{
+    background:#ffffff;
+  }
+  .card{
+    box-shadow:none;
+    border:0;
+    padding:0;
+  }
+}

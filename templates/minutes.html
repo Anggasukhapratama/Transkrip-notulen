@@ -1,0 +1,104 @@
+{# templates/minutes.html #}
+{% extends "_base.html" %}
+{% block content %}
+<section class="card">
+  {# ====== KOP SURAT ====== #}
+  {% if meta.kop_html %}
+    <div class="kop">{{ meta.kop_html|safe }}</div>
+  {% else %}
+    <div class="kop">
+      {% if meta.logo %}
+        <img src="{{ meta.logo }}" alt="Logo" class="kop-logo">
+      {% endif %}
+      <div class="instansi">{{ meta.instansi|replace('\n','<br>')|safe }}</div>
+      <div class="alamat">{{ meta.alamat }}</div>
+      <hr>
+    </div>
+  {% endif %}
+
+  {# ====== JUDUL & HEADER NOTULEN ====== #}
+  <h2>🧾 {{ meta.judul or (minutes.title or 'Notulen Rapat') }}</h2>
+
+  <!-- KALIMAT PEMBUKA: koreksi lokal, tanpa AI eksternal -->
+  <p class="muted" style="margin-top:4px">
+    📝 Notulen ini dihasilkan secara otomatis menggunakan sistem klasifikasi lokal tanpa AI eksternal.
+  </p>
+
+  <div class="meta-grid">
+    <div><b>Nomor</b> : {{ meta.nomor or "—" }}</div>
+    <div><b>Hari</b> : {{ meta.hari or "—" }}</div>
+    <div><b>Tanggal</b> : {{ meta.tanggal or minutes.tanggal }}</div>
+    <div><b>Waktu</b> : {{ meta.waktu or "—" }}</div>
+    <div><b>Tempat</b> : {{ meta.tempat or "—" }}</div>
+    <div><b>Pimpinan Rapat</b> : {{ meta.pimpinan or "—" }}</div>
+    <div><b>Notulis</b> : {{ meta.notulis or "—" }}</div>
+  </div>
+
+  <h3 style="margin-top:16px">Agenda</h3>
+  {% if minutes.agenda and minutes.agenda|length>0 %}
+    <ol>{% for a in minutes.agenda %}<li>{{ a }}</li>{% endfor %}</ol>
+  {% else %}
+    <div class="muted">—</div>
+  {% endif %}
+
+  {% if minutes.arahan and minutes.arahan|length>0 %}
+    <h3>Arahan</h3>
+    <ul>{% for x in minutes.arahan %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if minutes.keputusan and minutes.keputusan|length>0 %}
+    <h3>Keputusan</h3>
+    <ul>{% for x in minutes.keputusan %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if minutes.tindak_lanjut and minutes.tindak_lanjut|length>0 %}
+    <h3>Tindak Lanjut</h3>
+    <ul>{% for x in minutes.tindak_lanjut %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if minutes.isu and minutes.isu|length>0 %}
+    <h3>Isu/Kendala</h3>
+    <ul>{% for x in minutes.isu %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if minutes.catatan and minutes.catatan|length>0 %}
+    <h3>Catatan Tambahan</h3>
+    <ul>{% for x in minutes.catatan %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  <hr>
+  <div class="muted">
+    Sumber: Transkrip <b>{{ tr['program'] }}</b> ({{ tr['created_at'] }} • {{ tr['filename'] }})
+  </div>
+
+  <p class="actions">
+    <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}">✏️ Edit Header</a>
+    <a class="btn" href="{{ url_for('minutes_bp.minutes_docx', tid=tr['id']) }}">⬇️ Unduh DOCX</a>
+    <button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+    <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">↩ Kembali ke Transkrip</a>
+  </p>
+</section>
+
+<style>
+.kop { text-align:center; margin-bottom:6px; }
+.kop .kop-logo{ height:64px; display:block; margin:0 auto 8px; }
+.kop .instansi{ font-weight:800; text-transform:uppercase; }
+.kop .alamat{ color:#6b7280; margin-top:2px; }
+.meta-grid{
+  display:grid; gap:6px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px;
+  padding:12px 14px; margin:10px 0 6px;
+}
+.actions{
+  margin-top:12px; display:flex; gap:.5rem; flex-wrap:wrap;
+}
+@media print{
+  .topbar,.footer,.btn{ display:none !important; }
+  .card{ box-shadow:none; border:0; }
+  body{ background:#fff; }
+}
+.muted{
+  color:#6b7280; font-size:0.9rem;
+}
+</style>
+{% endblock %}

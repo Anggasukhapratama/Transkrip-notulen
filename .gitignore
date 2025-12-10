@@ -1,0 +1,23 @@
+# Virtual environments
+venv/
+venv310/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Local database & uploads
+instance/
+uploads/
+
+# Environment variables
+.env
+
+# IDE folders
+.vscode/
+.idea/
+
+# Logs
+*.log

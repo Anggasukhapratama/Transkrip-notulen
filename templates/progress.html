@@ -1,0 +1,37 @@
+{% extends "_base.html" %}
+{% block content %}
+<section class="card">
+  <h2>⏳ Memproses Transkrip</h2>
+  <div class="progress">
+    <div class="bar" id="bar" style="width:0%"></div>
+  </div>
+  <p id="status" class="muted">Menyiapkan…</p>
+  <p id="done" style="display:none">
+    <a id="detailLink" class="btn">Lihat Hasil</a>
+    <a class="btn" href="{{ url_for('main.index') }}">↩ Dashboard</a>
+  </p>
+  <p id="err" class="flash" style="display:none"></p>
+</section>
+
+<script>
+  // Perhatikan job_id diambil dari context Flask
+  const es = new EventSource("{{ url_for('transcription.events', job_id=job_id) }}");
+  es.onmessage = (ev) => {
+    const d = JSON.parse(ev.data);
+    document.getElementById('bar').style.width = (d.pct||0) + '%';
+    document.getElementById('status').textContent = (d.msg||'') + ' (' + (d.pct||0) + '%)';
+    if (d.done){
+      es.close();
+      if (d.error){
+        document.getElementById('err').style.display='';
+        document.getElementById('err').textContent='❌ ' + d.error;
+      } else {
+        document.getElementById('done').style.display='';
+        const link = document.getElementById('detailLink');
+        // Gunakan nama blueprint 'transcription'
+        link.href = "{{ url_for('transcription.transcript_detail', tid=0) }}".replace('0', d.tid);
+      }
+    }
+  };
+</script>
+{% endblock %}

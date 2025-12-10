@@ -1,0 +1,14 @@
+Flask==3.0.3
+Jinja2>=3.1.4
+Werkzeug>=3.0.2
+itsdangerous>=2.2.0
+click>=8.1.7
+python-dotenv>=1.0.1
+
+torch>=2.0.0
+numpy>=1.26.0
+openai-whisper==20231117   # ganti faster-whisper
+
+requests>=2.31.0
+python-docx>=1.1.0
+openai-whisper==20231117

@@ -1,0 +1,88 @@
+{% extends "_base.html" %}
+{% block content %}
+
+<div class="home-stack">
+  <section class="card">
+    <h2>🎙️ Upload & Transkrip Siaran (STT)</h2>
+    <p class="muted">Unggah rekaman (wav/mp3/m4a/ogg...) untuk ditranskrip otomatis.</p>
+
+    <form action="{{ url_for('transcription.transcribe') }}" method="post" enctype="multipart/form-data" class="form-grid">
+      <div class="form-group">
+        <label for="program">Nama Acara/Program</label>
+        <input id="program" type="text" name="program" placeholder="Contoh: Berita Pagi" required>
+      </div>
+
+      <div class="form-group">
+        <label for="audio">File Audio</label>
+        <input id="audio" type="file" name="audio" accept="audio/*" required>
+      </div>
+
+      <fieldset class="form-group">
+        <legend>Mode Pemilihan Model</legend>
+        <div class="inline">
+          <label class="radio">
+            <input type="radio" name="mode" value="auto" checked>
+            <span>Otomatis (≤30m: small, &gt;30m: medium)</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="mode" value="manual">
+            <span>Manual</span>
+          </label>
+          <select name="model_choice" aria-label="Pilih model (jika Manual)">
+            <option value="tiny">tiny (sangat cepat, akurasi rendah)</option>
+            <option value="base">base (cepat, akurasi cukup)</option>
+            <option value="small" selected>small (seimbang)</option>
+            <option value="medium">medium (lebih akurat, lebih lambat)</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <div class="form-group inline">
+        <label class="check">
+          <input type="checkbox" name="chunk">
+          <span>Potong otomatis tiap 10 menit (disarankan untuk rekaman panjang)</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="submit">Transkrip Sekarang</button>
+      </div>
+    </form>
+
+    {% if cp %}
+      <p class="hint">
+        🔴 Sedang tayang: <b>{{ cp[0] }}</b>{% if cp[1] %} (host: {{ cp[1] }}){% endif %}
+      </p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>📚 Transkrip Terbaru</h2>
+    {% if transcripts %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Program</th>
+            <th>File</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in transcripts %}
+          <tr>
+            <td class="muted">{{ t['created_at'] }}</td>
+            <td>{{ t['program'] }}</td>
+            <td class="muted">{{ t['filename'] }}</td>
+            <td><a href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}">Lihat</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="muted">Belum ada transkrip.</div>
+    {% endif %}
+  </section>
+</div>
+
+{% endblock %}

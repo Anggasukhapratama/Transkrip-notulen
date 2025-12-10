@@ -1,0 +1,24 @@
+{% extends "_base.html" %}
+{% block content %}
+<section class="card">
+  <h2>🎧 Semua Request Lagu</h2>
+  {% if rows %}
+    <table class="table">
+      <thead><tr><th>Waktu</th><th>Pengirim</th><th>Pesan</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td class="muted">{{ r['created_at'] }}</td>
+          <td>{{ r['username'] }} <span class="tag">{{ r['platform'] }}</span></td>
+          <td>{{ r['message'] }}</td>
+          <td><span class="pill">{{ r['status'] }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="muted">Belum ada data.</div>
+  {% endif %}
+  <p><a class="btn" href="{{ url_for('main.index') }}">↩ Dashboard</a></p>
+</section>
+{% endblock %}
