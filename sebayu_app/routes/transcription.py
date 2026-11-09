@@ -80,14 +80,31 @@ def events(job_id: str):
 
 @transcription_bp.post("/transcripts/<int:tid>/clean")
 def transcript_clean(tid: int):
+    from ..ai_refine import clean_transcript_with_ai, refine_minutes_with_ai
+    from ..config import DEFAULT_META
     with get_db() as db:
-        row = db.execute("SELECT transcript FROM transcripts WHERE id=?", (tid,)).fetchone()
+        row = db.execute("SELECT program, transcript, COALESCE(minutes_meta,'') minutes_meta FROM transcripts WHERE id=?", (tid,)).fetchone()
         if not row:
             abort(404)
-        cleaned = clean_text_id(row["transcript"]) if row["transcript"] else ""
-        db.execute("UPDATE transcripts SET cleaned_transcript=? WHERE id=?", (cleaned, tid))
+        cleaned = clean_transcript_with_ai(row["transcript"]) if row["transcript"] else ""
+        ai_min = refine_minutes_with_ai(cleaned or row["transcript"], row["program"])
+        meta = DEFAULT_META.copy()
+        if row["minutes_meta"]:
+            try:
+                meta.update(json.loads(row["minutes_meta"]))
+            except Exception:
+                pass
+        if ai_min:
+            meta["_ai_minutes"] = ai_min
+            summary = ai_min.get("ringkasan") or None
+            db.execute(
+                "UPDATE transcripts SET cleaned_transcript=?, summary=COALESCE(?, summary), minutes_meta=? WHERE id=?",
+                (cleaned, summary, json.dumps(meta, ensure_ascii=False), tid),
+            )
+        else:
+            db.execute("UPDATE transcripts SET cleaned_transcript=? WHERE id=?", (cleaned, tid))
         db.commit()
-    flash("Transkrip dibersihkan.")
+    flash("Transkrip & poin notulen berhasil diperbaiki dengan AI.")
     return redirect(url_for("transcription.transcript_detail", tid=tid))
 
 

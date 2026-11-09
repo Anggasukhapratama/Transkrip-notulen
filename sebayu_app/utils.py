@@ -1,10 +1,12 @@
 # sebayu_app/utils.py
+import json
 import requests
 from pathlib import Path
 
-from .config import ALLOWED_AUDIO, log, PROGRESS
+from .config import ALLOWED_AUDIO, DEFAULT_META, log, PROGRESS
 from .database import get_db, now_str, current_program, get_today_schedule_text
 from .textclean import clean_text_id  # Cleaner terintegrasi
+from .ai_refine import clean_transcript_with_ai, refine_minutes_with_ai
 from .stt import transcribe_file, engine_info  # noqa: F401  (CPU/GPU)
 from .notulen import (  # noqa: F401  (diekspor untuk route)
     local_summarize_bullets, build_minutes_data, build_docx_from_minutes,
@@ -49,27 +51,42 @@ def run_transcribe_job(job_id: str, save_path: Path, program: str, mode: str, ma
         if not full_text.strip():
             raise RuntimeError("Tidak ada ucapan terdeteksi pada audio.")
 
-        summary_text = None
-        if do_summary:
-            set_progress(job_id, 92, "Merangkum (lokal)…")
-            try:
-                summary_text = local_summarize_bullets(full_text)
-            except Exception as e:
-                summary_text = f"[Gagal merangkum: {e}]"
-
-        set_progress(job_id, 96, "Membersihkan teks")
+        set_progress(job_id, 91, "Memperbaiki teks dengan AI…")
         try:
-            cleaned = clean_text_id(full_text)
+            cleaned = clean_transcript_with_ai(full_text)
         except Exception as e:
             log.warning(f"Gagal membersihkan teks: {e}")
-            cleaned = None
+            cleaned = clean_text_id(full_text)
+
+        set_progress(job_id, 95, "Menyusun poin notulen dengan AI…")
+        ai_min = None
+        try:
+            ai_min = refine_minutes_with_ai(cleaned or full_text, program)
+        except Exception as e:
+            log.warning(f"Gagal menyusun notulen AI: {e}")
+
+        summary_text = None
+        if do_summary:
+            if ai_min and ai_min.get("ringkasan"):
+                summary_text = ai_min["ringkasan"]
+            else:
+                try:
+                    summary_text = local_summarize_bullets(cleaned or full_text)
+                except Exception as e:
+                    summary_text = f"[Gagal merangkum: {e}]"
+
+        meta_json = None
+        if ai_min:
+            meta = DEFAULT_META.copy()
+            meta["_ai_minutes"] = ai_min
+            meta_json = json.dumps(meta, ensure_ascii=False)
 
         set_progress(job_id, 98, "Menyimpan ke database")
         with get_db() as db:
             cur = db.execute(
-                "INSERT INTO transcripts(program, filename, transcript, created_at, summary, cleaned_transcript) "
-                "VALUES(?,?,?,?,?,?)",
-                (program, save_path.name, full_text, now_str(), summary_text, cleaned),
+                "INSERT INTO transcripts(program, filename, transcript, created_at, summary, cleaned_transcript, minutes_meta) "
+                "VALUES(?,?,?,?,?,?,?)",
+                (program, save_path.name, full_text, now_str(), summary_text, cleaned, meta_json),
             )
             tid = cur.lastrowid
             db.commit()

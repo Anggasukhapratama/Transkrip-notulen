@@ -366,6 +366,24 @@ def build_minutes_data(tr: dict, meta: dict | None) -> dict:
     custom = {k: v for k, v in custom.items() if v}
     sec = extract_sections(tr.get("transcript", ""), custom)
 
+    # Gunakan hasil koreksi AI (_ai_minutes) bila tersedia
+    ai_min = m.get("_ai_minutes")
+    if isinstance(ai_min, dict):
+        for k in ("pembahasan", "keputusan", "arahan", "isu"):
+            if isinstance(ai_min.get(k), list) and ai_min[k]:
+                sec[k] = [str(x).strip() for x in ai_min[k] if str(x).strip()]
+        if isinstance(ai_min.get("tindak_lanjut"), list) and ai_min["tindak_lanjut"]:
+            tl = []
+            for it in ai_min["tindak_lanjut"]:
+                if isinstance(it, dict) and str(it.get("text") or "").strip():
+                    tl.append({
+                        "text": str(it["text"]).strip(),
+                        "pic": str(it.get("pic") or "-").strip() or "-",
+                        "due": str(it.get("due") or "-").strip() or "-",
+                    })
+            if tl:
+                sec["tindak_lanjut"] = tl
+
     tgl = m.get("tanggal") or tanggal_id(dt)
     hari = m.get("hari") or hari_id(dt)
     dash = "-"

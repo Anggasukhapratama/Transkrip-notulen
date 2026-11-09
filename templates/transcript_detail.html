@@ -13,7 +13,7 @@
     <a class="btn btn-primary" href="{{ url_for('minutes_bp.transcript_minutes', tid=tr['id']) }}">{{ icon('file') }} Jadikan notulen</a>
     <a class="btn" href="{{ url_for('editor_bp.transcript_edit', tid=tr['id']) }}">{{ icon('pen') }} Edit &amp; cetak</a>
     <form method="post" action="{{ url_for('transcription.transcript_clean', tid=tr['id']) }}">
-      <button class="btn" type="submit">{{ icon('broom') }} Bersihkan teks</button>
+      <button class="btn" type="submit">{{ icon('sparkle') }} Bersihkan &amp; Koreksi AI</button>
     </form>
     <form method="post" action="{{ url_for('transcription.transcript_delete', tid=tr['id']) }}"
           onsubmit="return confirm('Yakin mau hapus transkrip ini?')">

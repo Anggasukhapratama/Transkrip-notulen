@@ -13,6 +13,7 @@ from . import minutes_bp
 from ..database import get_db
 from ..config import DEFAULT_META, UPLOAD_DIR, ALLOWED_IMG, log
 from ..notulen import build_minutes_data, build_docx_from_minutes
+from ..ai_refine import refine_minutes_with_ai, clean_transcript_with_ai
 
 TR_SQL = (
     "SELECT id, program, filename, "
@@ -50,8 +51,37 @@ def _save_meta(tid: int, meta: dict) -> None:
 def transcript_minutes(tid: int):
     row = _get_tr(tid)
     meta = _load_meta(row["minutes_meta"])
+    if not meta.get("_ai_minutes") and not meta.get("_ai_tried"):
+        meta["_ai_tried"] = True
+        ai_min = refine_minutes_with_ai(row["transcript"], row["program"])
+        if ai_min:
+            meta["_ai_minutes"] = ai_min
+        _save_meta(tid, meta)
     data = build_minutes_data(dict(row), meta)
     return render_template("minutes.html", tr=row, data=data, meta=meta)
+
+
+@minutes_bp.post("/transcripts/<int:tid>/minutes/ai-refine")
+def minutes_ai_refine(tid: int):
+    with get_db() as db:
+        raw_row = db.execute("SELECT id, program, transcript, COALESCE(cleaned_transcript,'') cleaned_transcript, COALESCE(minutes_meta,'') minutes_meta FROM transcripts WHERE id=?", (tid,)).fetchone()
+    if not raw_row:
+        abort(404)
+    meta = _load_meta(raw_row["minutes_meta"])
+    cleaned = clean_transcript_with_ai(raw_row["transcript"])
+    ai_min = refine_minutes_with_ai(cleaned or raw_row["transcript"], raw_row["program"])
+    if ai_min:
+        meta["_ai_minutes"] = ai_min
+        with get_db() as db:
+            db.execute(
+                "UPDATE transcripts SET cleaned_transcript=?, summary=COALESCE(?, summary), minutes_meta=? WHERE id=?",
+                (cleaned, ai_min.get("ringkasan") or None, json.dumps(meta, ensure_ascii=False), tid),
+            )
+            db.commit()
+        flash("Notulen & transkrip berhasil dikoreksi dan disusun ulang dengan AI.")
+    else:
+        flash("Layanan AI sedang sibuk, menampilkan hasil klasifikasi lokal.")
+    return redirect(url_for("minutes_bp.transcript_minutes", tid=tid))
 
 
 @minutes_bp.get("/transcripts/<int:tid>/minutes/edit")
