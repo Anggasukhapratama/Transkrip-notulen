@@ -87,7 +87,7 @@ def have_faster_whisper() -> bool:
 
 
 def cuda_available() -> bool:
-    if _GPU_BROKEN["flag"]:
+    if _GPU_BROKEN["flag"] or os.environ.get("SPACES_ZERO_GPU"):
         return False
     try:
         import ctranslate2
@@ -111,7 +111,7 @@ def engine_info() -> dict:
         "vram_mb": _GPU_INFO["vram_mb"],
         "gpu_detected": bool(_GPU_INFO["name"]),
         "gpu_broken_reason": _GPU_BROKEN["reason"],
-        "cpu_threads": os.cpu_count() or 1,
+        "cpu_threads": min(8, os.cpu_count() or 4),
     }
 
 
@@ -167,7 +167,7 @@ def _load_faster(size: str, device: str, compute_pref: str):
         try:
             kwargs = {"device": device, "compute_type": compute}
             if device == "cpu":
-                kwargs["cpu_threads"] = os.cpu_count() or 4
+                kwargs["cpu_threads"] = min(8, os.cpu_count() or 4)
             log.info(f"[stt] load faster-whisper model={size} device={device} compute={compute}")
             model = WhisperModel(size, **kwargs)
             _MODELS[key] = model
