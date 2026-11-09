@@ -7,6 +7,16 @@ from sebayu_app.config import log
 # Panggil fungsi create_app untuk mendapatkan instance aplikasi Flask
 app = create_app()
 
+# Dukungan untuk Hugging Face Spaces (ZeroGPU)
+try:
+    import spaces  # type: ignore
+
+    @spaces.GPU
+    def _hf_zero_gpu_hook():
+        return "ready"
+except Exception:
+    pass
+
 if __name__ == "__main__":
     # Reloader dimatikan: restart otomatis akan membunuh proses transkripsi yang sedang berjalan.
     # Aktifkan dengan FLASK_DEBUG=1 bila sedang mengembangkan.
