@@ -5,19 +5,22 @@ from datetime import datetime
 import logging
 import sys
 
+import tempfile
+
 # --- Config dasar ---
 _APP_PACKAGE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = _APP_PACKAGE_DIR.parent
+_BASE_DATA_DIR = Path(os.environ.get("DATA_DIR") or ( Path(tempfile.gettempdir()) / "sebayu_data" if os.environ.get("VERCEL") else PROJECT_ROOT ))
 
-INSTANCE_DIR = PROJECT_ROOT / "instance"
-UPLOAD_DIR = PROJECT_ROOT / "uploads"
+INSTANCE_DIR = _BASE_DATA_DIR / "instance"
+UPLOAD_DIR = _BASE_DATA_DIR / "uploads"
 DB_PATH = INSTANCE_DIR / "sebayu.db"
 
 ALLOWED_AUDIO = {"wav", "mp3", "m4a", "aac", "flac", "ogg"}
 ALLOWED_IMG = {"png", "jpg", "jpeg", "gif", "webp"}
 
-INSTANCE_DIR.mkdir(exist_ok=True)
-UPLOAD_DIR.mkdir(exist_ok=True)
+INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 WHISPER_DEVICE  = os.environ.get("WHISPER_DEVICE", "auto")       # auto|cuda|cpu
 WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "auto")      # auto|float16|int8_float16|int8

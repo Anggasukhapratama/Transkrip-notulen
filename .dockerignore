@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+venv310
+__pycache__
+*.pyc
+*.pyo
+*.log
+instance/
+uploads/
+*.tar.xz

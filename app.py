@@ -11,5 +11,7 @@ if __name__ == "__main__":
     # Reloader dimatikan: restart otomatis akan membunuh proses transkripsi yang sedang berjalan.
     # Aktifkan dengan FLASK_DEBUG=1 bila sedang mengembangkan.
     debug = os.environ.get("FLASK_DEBUG") == "1"
-    log.info("Starting Flask app from root app.py...")
-    app.run(debug=debug, use_reloader=False, threaded=True, port=int(os.environ.get("PORT", 5000)))
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 5000))
+    log.info(f"Starting Flask app on {host}:{port} ...")
+    app.run(host=host, port=port, debug=debug, use_reloader=False, threaded=True)
