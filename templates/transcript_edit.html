@@ -1,10 +1,14 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Edit transkrip{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>✏️ Edit Transkrip – {{ tr['program'] }}</h2>
-  <div class="muted">{{ tr['created_at'] }} • File: {{ tr['filename'] }}</div>
+<div class="page-head no-print">
+  <div class="crumbs"><a href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">{{ tr['program'] }}</a> / Edit</div>
+  <h1>Edit transkrip</h1>
+  <p>{{ tr['created_at'] }} · {{ tr['filename'] }}</p>
+</div>
 
-  <!-- Toolbar sederhana -->
+<section class="card mt">
   <div class="toolbar">
     <button type="button" onclick="fmt('bold')"><b>B</b></button>
     <button type="button" onclick="fmt('italic')"><i>I</i></button>
@@ -13,52 +17,29 @@
     <button type="button" onclick="fmtBlock('p')">P</button>
     <button type="button" onclick="fmtBlock('h3')">H3</button>
     <span class="sep"></span>
-    <button type="button" onclick="fmt('insertUnorderedList')">• List</button>
-    <button type="button" onclick="fmt('insertOrderedList')">1. List</button>
+    <button type="button" onclick="fmt('insertUnorderedList')">• Daftar</button>
+    <button type="button" onclick="fmt('insertOrderedList')">1. Daftar</button>
     <span class="sep"></span>
-    <button type="button" onclick="insertHr()">— HR</button>
-    <button type="button" onclick="insertPara()">+ Paragraf</button>
-    <span class="sep"></span>
-    <button type="button" onclick="window.print()">🖨️ Cetak</button>
+    <button type="button" onclick="insertHr()">― Garis</button>
+    <button type="button" onclick="window.print()">{{ icon('print') }} Cetak</button>
   </div>
 
-  <!-- Editor -->
   <form id="editform" method="post" action="{{ url_for('editor_bp.transcript_edit_save', tid=tr['id']) }}">
     <div id="editor" class="editor" contenteditable="true">{{ html|safe }}</div>
     <input type="hidden" name="html" id="html-input">
-    <div class="form-actions">
-      <button class="btn" type="submit">💾 Simpan</button>
-      <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">↩ Kembali</a>
+    <div class="actions form-actions">
+      <button class="btn btn-primary" type="submit">{{ icon('check') }} Simpan</button>
+      <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">{{ icon('back') }} Kembali</a>
     </div>
   </form>
 </section>
+{% endblock %}
 
-<style>
-.toolbar { display:flex; gap:.5rem; flex-wrap:wrap; margin:12px 0; }
-.toolbar .sep{ width:1px; background:#e5e7eb; margin:0 4px; }
-.toolbar button{ padding:6px 10px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; cursor:pointer; }
-.toolbar button:hover{ background:#f8fafc; }
-
-.editor{
-  min-height:420px; padding:16px; border:1px solid #e5e7eb; border-radius:12px;
-  background:#fff; line-height:1.6; font-size:16px;
-}
-.editor p{ margin:0 0 10px; }
-.editor h3{ margin:18px 0 8px; }
-
-@media print{
-  .topbar,.footer,.toolbar,.form-actions,.btn{ display:none !important; }
-  .card{ box-shadow:none; border:0; }
-  body{ background:#fff; }
-  .editor{ border:0; padding:0; }
-}
-</style>
-
+{% block scripts %}
 <script>
 function fmt(cmd){ document.execCommand(cmd, false, null); }
 function fmtBlock(tag){ document.execCommand('formatBlock', false, tag); }
 function insertHr(){ document.execCommand('insertHTML', false, '<hr>'); }
-function insertPara(){ document.execCommand('insertHTML', false, '<p>&nbsp;</p>'); }
 document.getElementById('editform').addEventListener('submit', () => {
   document.getElementById('html-input').value = document.getElementById('editor').innerHTML;
 });

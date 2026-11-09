@@ -1,37 +1,57 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Memproses…{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>⏳ Memproses Transkrip</h2>
-  <div class="progress">
-    <div class="bar" id="bar" style="width:0%"></div>
+<section class="card progress-card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+    <div>
+      <h2 class="card-title" id="title"><span class="spinner" id="spin"></span> Memproses transkrip</h2>
+      <p class="muted" id="status">Menyiapkan…</p>
+    </div>
+    <div class="pct" id="pct">0%</div>
   </div>
-  <p id="status" class="muted">Menyiapkan…</p>
-  <p id="done" style="display:none">
-    <a id="detailLink" class="btn">Lihat Hasil</a>
-    <a class="btn" href="{{ url_for('main.index') }}">↩ Dashboard</a>
-  </p>
-  <p id="err" class="flash" style="display:none"></p>
-</section>
+  <div class="progress mt"><div class="bar" id="bar"></div></div>
 
+  <p class="small muted mt">Halaman ini boleh dibiarkan terbuka. Proses di server tetap berjalan.</p>
+
+  <div class="actions" id="done" style="display:none">
+    <a id="detailLink" class="btn btn-primary">{{ icon('file') }} Lihat hasil</a>
+    <a class="btn" href="{{ url_for('main.index') }}">{{ icon('back') }} Dashboard</a>
+  </div>
+  <div class="flash" id="err" style="display:none"></div>
+  <div class="actions" id="retry" style="display:none">
+    <a class="btn" href="{{ url_for('main.index') }}">{{ icon('back') }} Kembali & coba lagi</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
 <script>
-  // Perhatikan job_id diambil dari context Flask
+  const $ = id => document.getElementById(id);
   const es = new EventSource("{{ url_for('transcription.events', job_id=job_id) }}");
   es.onmessage = (ev) => {
     const d = JSON.parse(ev.data);
-    document.getElementById('bar').style.width = (d.pct||0) + '%';
-    document.getElementById('status').textContent = (d.msg||'') + ' (' + (d.pct||0) + '%)';
-    if (d.done){
+    const p = d.pct || 0;
+    $('bar').style.width = p + '%';
+    $('pct').textContent = p + '%';
+    $('status').textContent = d.msg || '';
+    if (d.done) {
       es.close();
-      if (d.error){
-        document.getElementById('err').style.display='';
-        document.getElementById('err').textContent='❌ ' + d.error;
+      $('spin').style.display = 'none';
+      if (d.error) {
+        $('bar').classList.add('fail');
+        $('title').textContent = 'Transkrip gagal';
+        $('err').style.display = '';
+        const box = document.createElement('div'); box.textContent = d.error; $('err').appendChild(box);
+        $('retry').style.display = '';
       } else {
-        document.getElementById('done').style.display='';
-        const link = document.getElementById('detailLink');
-        // Gunakan nama blueprint 'transcription'
-        link.href = "{{ url_for('transcription.transcript_detail', tid=0) }}".replace('0', d.tid);
+        $('bar').classList.add('done');
+        $('title').textContent = 'Transkrip selesai';
+        $('done').style.display = '';
+        $('detailLink').href = "{{ url_for('transcription.transcript_detail', tid=0) }}".replace(/0$/, d.tid);
       }
     }
   };
+  es.onerror = () => { $('status').textContent = 'Menghubungkan ulang…'; };
 </script>
 {% endblock %}

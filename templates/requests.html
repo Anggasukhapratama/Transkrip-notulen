@@ -1,24 +1,22 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Permintaan{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>🎧 Semua Request Lagu</h2>
+<div class="page-head"><h1>Permintaan</h1></div>
+<section class="card mt">
   {% if rows %}
+    <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Waktu</th><th>Pengirim</th><th>Pesan</th><th>Status</th></tr></thead>
+      <thead><tr><th>Waktu</th><th>Pengguna</th><th>Platform</th><th>Pesan</th><th>Status</th></tr></thead>
       <tbody>
       {% for r in rows %}
-        <tr>
-          <td class="muted">{{ r['created_at'] }}</td>
-          <td>{{ r['username'] }} <span class="tag">{{ r['platform'] }}</span></td>
-          <td>{{ r['message'] }}</td>
-          <td><span class="pill">{{ r['status'] }}</span></td>
-        </tr>
+        <tr><td class="muted">{{ r['created_at'] }}</td><td>{{ r['username'] }}</td><td>{{ r['platform'] }}</td><td>{{ r['message'] }}</td><td>{{ r['status'] }}</td></tr>
       {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
-    <div class="muted">Belum ada data.</div>
+    <div class="empty">{{ icon('list') }}<div>Belum ada permintaan.</div></div>
   {% endif %}
-  <p><a class="btn" href="{{ url_for('main.index') }}">↩ Dashboard</a></p>
 </section>
 {% endblock %}

@@ -1,14 +1,14 @@
-Flask==3.0.3
-Jinja2>=3.1.4
-Werkzeug>=3.0.2
-itsdangerous>=2.2.0
-click>=8.1.7
+Flask>=3.0.3
 python-dotenv>=1.0.1
-
-torch>=2.0.0
-numpy>=1.26.0
-openai-whisper==20231117   # ganti faster-whisper
-
 requests>=2.31.0
 python-docx>=1.1.0
-openai-whisper==20231117
+Pillow>=10.0.0
+
+# --- Transkripsi (CPU & GPU) ---
+faster-whisper>=1.0.3      # mesin utama (CPU int8 / GPU CUDA), jauh lebih cepat
+# Opsional fallback bila faster-whisper tidak ada:
+# openai-whisper
+# torch
+
+# --- Opsional: akselerasi GPU NVIDIA (Windows/Linux) ---
+# pip install nvidia-cublas-cu12 nvidia-cudnn-cu12==9.*

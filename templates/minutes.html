@@ -1,104 +1,100 @@
-{# templates/minutes.html #}
-{% extends "_base.html" %}
+﻿{% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Notulen — {{ tr['program'] }}{% endblock %}
 {% block content %}
-<section class="card">
-  {# ====== KOP SURAT ====== #}
-  {% if meta.kop_html %}
-    <div class="kop">{{ meta.kop_html|safe }}</div>
-  {% else %}
-    <div class="kop">
-      {% if meta.logo %}
-        <img src="{{ meta.logo }}" alt="Logo" class="kop-logo">
+{% set h = data.header %}
+{% set tt = data.ttd %}
+<div class="page-head">
+  <div class="crumbs"><a href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">{{ tr['program'] }}</a> / Notulen</div>
+  <h1>Notulen rapat</h1>
+  <p>Pratinjau sesuai format dokumen yang diunduh. Sumber: {{ tr['filename'] }}</p>
+</div>
+
+<div class="actions no-print" style="margin:6px 0 18px">
+  <a class="btn btn-primary" href="{{ url_for('minutes_bp.minutes_docx', tid=tr['id']) }}">{{ icon('download') }} Unduh DOCX</a>
+  <button class="btn" onclick="window.print()">{{ icon('print') }} Cetak / simpan PDF</button>
+  <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}">{{ icon('pen') }} Atur kop &amp; data rapat</a>
+  <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}#ttd">{{ icon('pen') }} Tanda tangan digital</a>
+  <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">{{ icon('back') }} Transkrip</a>
+</div>
+
+<div class="paper-wrap">
+  <article class="paper">
+
+    {# ===== KOP ===== #}
+    {% if h.kop_html %}
+      <div class="center">{{ h.kop_html|safe }}</div>
+    {% else %}
+      <div class="kop">
+        <div>{% if h.logo %}<img src="{{ h.logo }}" alt="Logo">{% endif %}</div>
+        <div class="kop-text">
+          {% for ln in h.instansi_lines %}
+            <div class="{{ 'l2' if loop.last else 'l1' }}">{{ ln }}</div>
+          {% endfor %}
+          {% if h.alamat %}<div class="al">{{ h.alamat }}</div>{% endif %}
+        </div>
+        <div></div>
+      </div>
+    {% endif %}
+    <hr class="rule">
+
+    <div class="judul">{{ data.judul }}</div>
+    {% if data.nomor %}<div class="nomor">Nomor: {{ data.nomor }}</div>{% endif %}
+
+    <table class="info">
+      {% for label, val in data.info %}
+        <tr><td>{{ label }}</td><td>:</td><td>{{ val }}</td></tr>
+      {% endfor %}
+    </table>
+
+    {% set ns = namespace(n=0) %}
+    {% macro sect(title, items) %}
+      {% if items %}
+        {% set ns.n = ns.n + 1 %}
+        <h3>{{ 'ABCDEFGH'[ns.n - 1] }}. {{ title }}</h3>
+        <ol>{% for x in items %}<li>{{ x }}</li>{% endfor %}</ol>
       {% endif %}
-      <div class="instansi">{{ meta.instansi|replace('\n','<br>')|safe }}</div>
-      <div class="alamat">{{ meta.alamat }}</div>
-      <hr>
+    {% endmacro %}
+
+    {{ sect('Peserta Rapat', data.peserta) }}
+    {{ sect('Pokok Pembahasan', data.pembahasan) }}
+    {{ sect('Arahan Pimpinan', data.arahan) }}
+    {{ sect('Isu / Kendala', data.isu) }}
+    {{ sect('Keputusan Rapat', data.keputusan) }}
+
+    {% if data.tindak_lanjut %}
+      {% set ns.n = ns.n + 1 %}
+      <h3>{{ 'ABCDEFGH'[ns.n - 1] }}. Tindak Lanjut</h3>
+      <table class="tl">
+        <thead><tr><th style="width:36px">No</th><th>Tindak Lanjut</th><th style="width:100px">PIC</th><th style="width:100px">Batas Waktu</th></tr></thead>
+        <tbody>
+          {% for it in data.tindak_lanjut %}
+            <tr>
+              <td class="center">{{ loop.index }}</td>
+              <td style="text-align:justify">{{ it.text }}</td>
+              <td class="center">{{ it.pic or '-' }}</td>
+              <td class="center">{{ it.due or '-' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if not (data.pembahasan or data.keputusan or data.tindak_lanjut or data.arahan or data.isu) %}
+      <p class="empty-note">Isi rapat belum dapat diekstrak dari transkrip ini (teks terlalu pendek).</p>
+    {% endif %}
+
+    <p class="penutup">{{ data.penutup }}</p>
+
+    <div class="ttd">
+      <div>{{ tt.kota }}{% if tt.kota and tt.tanggal %}, {% endif %}{{ tt.tanggal }}</div>
+      <div>{{ tt.jabatan }}</div>
+      <div class="space">{% if tt.image %}<img src="{{ tt.image }}" alt="Tanda tangan digital">{% endif %}</div>
+      <div class="nm">{{ tt.nama or '(                              )' }}</div>
+      {% if tt.pangkat %}<div>{{ tt.pangkat }}</div>{% endif %}
+      {% if tt.nip %}<div>NIP. {{ tt.nip }}</div>{% endif %}
+      {% if tt.image and tt.signed_at %}<div class="sig-note">Ditandatangani secara digital, {{ tt.signed_at }}</div>{% endif %}
     </div>
-  {% endif %}
-
-  {# ====== JUDUL & HEADER NOTULEN ====== #}
-  <h2>🧾 {{ meta.judul or (minutes.title or 'Notulen Rapat') }}</h2>
-
-  <!-- KALIMAT PEMBUKA: koreksi lokal, tanpa AI eksternal -->
-  <p class="muted" style="margin-top:4px">
-    📝 Notulen ini dihasilkan secara otomatis menggunakan sistem klasifikasi lokal tanpa AI eksternal.
-  </p>
-
-  <div class="meta-grid">
-    <div><b>Nomor</b> : {{ meta.nomor or "—" }}</div>
-    <div><b>Hari</b> : {{ meta.hari or "—" }}</div>
-    <div><b>Tanggal</b> : {{ meta.tanggal or minutes.tanggal }}</div>
-    <div><b>Waktu</b> : {{ meta.waktu or "—" }}</div>
-    <div><b>Tempat</b> : {{ meta.tempat or "—" }}</div>
-    <div><b>Pimpinan Rapat</b> : {{ meta.pimpinan or "—" }}</div>
-    <div><b>Notulis</b> : {{ meta.notulis or "—" }}</div>
-  </div>
-
-  <h3 style="margin-top:16px">Agenda</h3>
-  {% if minutes.agenda and minutes.agenda|length>0 %}
-    <ol>{% for a in minutes.agenda %}<li>{{ a }}</li>{% endfor %}</ol>
-  {% else %}
-    <div class="muted">—</div>
-  {% endif %}
-
-  {% if minutes.arahan and minutes.arahan|length>0 %}
-    <h3>Arahan</h3>
-    <ul>{% for x in minutes.arahan %}<li>{{ x }}</li>{% endfor %}</ul>
-  {% endif %}
-
-  {% if minutes.keputusan and minutes.keputusan|length>0 %}
-    <h3>Keputusan</h3>
-    <ul>{% for x in minutes.keputusan %}<li>{{ x }}</li>{% endfor %}</ul>
-  {% endif %}
-
-  {% if minutes.tindak_lanjut and minutes.tindak_lanjut|length>0 %}
-    <h3>Tindak Lanjut</h3>
-    <ul>{% for x in minutes.tindak_lanjut %}<li>{{ x }}</li>{% endfor %}</ul>
-  {% endif %}
-
-  {% if minutes.isu and minutes.isu|length>0 %}
-    <h3>Isu/Kendala</h3>
-    <ul>{% for x in minutes.isu %}<li>{{ x }}</li>{% endfor %}</ul>
-  {% endif %}
-
-  {% if minutes.catatan and minutes.catatan|length>0 %}
-    <h3>Catatan Tambahan</h3>
-    <ul>{% for x in minutes.catatan %}<li>{{ x }}</li>{% endfor %}</ul>
-  {% endif %}
-
-  <hr>
-  <div class="muted">
-    Sumber: Transkrip <b>{{ tr['program'] }}</b> ({{ tr['created_at'] }} • {{ tr['filename'] }})
-  </div>
-
-  <p class="actions">
-    <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}">✏️ Edit Header</a>
-    <a class="btn" href="{{ url_for('minutes_bp.minutes_docx', tid=tr['id']) }}">⬇️ Unduh DOCX</a>
-    <button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
-    <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">↩ Kembali ke Transkrip</a>
-  </p>
-</section>
-
-<style>
-.kop { text-align:center; margin-bottom:6px; }
-.kop .kop-logo{ height:64px; display:block; margin:0 auto 8px; }
-.kop .instansi{ font-weight:800; text-transform:uppercase; }
-.kop .alamat{ color:#6b7280; margin-top:2px; }
-.meta-grid{
-  display:grid; gap:6px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-  background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px;
-  padding:12px 14px; margin:10px 0 6px;
-}
-.actions{
-  margin-top:12px; display:flex; gap:.5rem; flex-wrap:wrap;
-}
-@media print{
-  .topbar,.footer,.btn{ display:none !important; }
-  .card{ box-shadow:none; border:0; }
-  body{ background:#fff; }
-}
-.muted{
-  color:#6b7280; font-size:0.9rem;
-}
-</style>
+  </article>
+</div>
 {% endblock %}

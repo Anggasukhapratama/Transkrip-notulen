@@ -8,6 +8,8 @@ from sebayu_app.config import log
 app = create_app()
 
 if __name__ == "__main__":
-    # Contoh: PYTHONUNBUFFERED=1 LOG_LEVEL=INFO python -u app.py
+    # Reloader dimatikan: restart otomatis akan membunuh proses transkripsi yang sedang berjalan.
+    # Aktifkan dengan FLASK_DEBUG=1 bila sedang mengembangkan.
+    debug = os.environ.get("FLASK_DEBUG") == "1"
     log.info("Starting Flask app from root app.py...")
-    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=debug, use_reloader=False, threaded=True, port=int(os.environ.get("PORT", 5000)))

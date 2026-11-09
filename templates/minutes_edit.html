@@ -1,104 +1,210 @@
-{# my_flask_app/templates/minutes_edit.html #}
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Atur Notulen{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>✏️ Edit Header Notulen</h2>
+<div class="page-head">
+  <div class="crumbs"><a href="{{ url_for('minutes_bp.transcript_minutes', tid=tid) }}">Notulen</a> / Pengaturan</div>
+  <h1>Pengaturan notulen</h1>
+  <p>Lengkapi kop surat, data rapat, dan penanda tangan. Hasilnya langsung dipakai pada tampilan dan file DOCX.</p>
+</div>
 
-  <!-- Upload logo -->
-  <form class="inline" method="post" action="{{ url_for('minutes_bp.upload_logo') }}" enctype="multipart/form-data">
-    <input type="file" name="logo" accept="image/*" required>
-    <input type="hidden" name="redirect" value="{{ request.url }}">
-    <button class="btn" type="submit">⬆️ Upload Logo</button>
-    {% if request.args.get('logo') %}
-      <span class="muted">Terunggah: {{ request.args.get('logo') }}</span>
-    {% endif %}
-  </form>
-
-  <form method="post" action="{{ url_for('minutes_bp.minutes_edit_save', tid=tid) }}" class="form-grid" style="margin-top:12px">
-    <label>Instansi/Kop Surat<br><textarea name="instansi" rows="3">{{ meta.instansi }}</textarea></label>
-    <label>Alamat/Kontak<br><input type="text" name="alamat" value="{{ meta.alamat }}"></label>
-    <label>Judul Dokumen<br><input type="text" name="judul" value="{{ meta.judul }}"></label>
-    <label>Nomor<br><input type="text" name="nomor" value="{{ meta.nomor }}"></label>
-
-    <div class="grid2">
-      <label>Hari<br><input type="text" name="hari" value="{{ meta.hari }}"></label>
-      <label>Tanggal<br><input type="text" name="tanggal" value="{{ meta.tanggal }}"></label>
-      <label>Waktu<br><input type="text" name="waktu" value="{{ meta.waktu }}"></label>
-      <label>Tempat<br><input type="text" name="tempat" value="{{ meta.tempat }}"></label>
-      <label>Pimpinan Rapat<br><input type="text" name="pimpinan" value="{{ meta.pimpinan }}"></label>
-      <label>Notulis<br><input type="text" name="notulis" value="{{ meta.notulis }}"></label>
-    </div>
-
-    <label>Logo (URL relatif, contoh: <code>/uploads/logo_xxx.png</code>)<br>
-      <input type="text" name="logo" value="{{ meta.logo }}">
-    </label>
-
-    <label>Header HTML kustom (opsional). Jika diisi, menggantikan kop default.<br>
-      <textarea name="kop_html" rows="6" placeholder="<div style='text-align:center'>... HTML anda ...</div>">{{ meta.kop_html }}</textarea>
-    </label>
-
-    <!-- BARU: Field untuk tanda tangan -->
-    <h3 style="margin-top:8px">Tanda Tangan</h3>
-    <div class="grid2">
-      <label>Jabatan Penanda Tangan<br>
-        <input type="text" name="ttd_jabatan" value="{{ meta.ttd_jabatan }}">
-      </label>
-      <label>Nama Penanda Tangan<br>
-        <input type="text" name="ttd_nama" value="{{ meta.ttd_nama }}">
-      </label>
-      <label>Pangkat/Golongan<br>
-        <input type="text" name="ttd_pangkat" value="{{ meta.ttd_pangkat }}">
-      </label>
-      <label>NIP<br>
-        <input type="text" name="ttd_nip" value="{{ meta.ttd_nip }}">
-      </label>
-    </div>
-    <!-- AKHIR BARU -->
-
-    <!-- ========== Tambahan: Kata Kunci Custom untuk Klasifikasi ========== -->
-    <h3 style="margin-top:8px">Kata Kunci Tambahan (opsional)</h3>
-    <p class="muted">
-      Isi dengan <b>koma</b> (mis: <i>pengesahan KUA PPAS, menetapkan pagu</i>) atau <b>JSON array</b>
-      (mis: <code>["pengesahan KUA PPAS","menetapkan pagu"]</code>).
-    </p>
-
-    <div class="grid2">
-      <label>Keputusan<br>
-        <textarea name="kw_keputusan" rows="2" placeholder="contoh: pengesahan KUA PPAS, menetapkan pagu, menyetujui TAPD">{{ (meta.kw_keputusan or [])|join(', ') }}</textarea>
-      </label>
-
-      <label>Tindak Lanjut<br>
-        <textarea name="kw_tindak_lanjut" rows="2" placeholder="contoh: menginput SIPD, menyusun RKA, kirim surat ke BPK">{{ (meta.kw_tindak_lanjut or [])|join(', ') }}</textarea>
-      </label>
-
-      <label>Isu/Kendala<br>
-        <textarea name="kw_isu" rows="2" placeholder="contoh: keterlambatan data, kendala anggaran">{{ (meta.kw_isu or [])|join(', ') }}</textarea>
-      </label>
-
-      <label>Arahan<br>
-        <textarea name="kw_arahan" rows="2">{{ (meta.kw_arahan or [])|join(', ') }}</textarea>
-      </label>
-
-      <label>Catatan<br>
-        <textarea name="kw_catatan" rows="2">{{ (meta.kw_catatan or [])|join(', ') }}</textarea>
-      </label>
-    </div>
-    <!-- ========== /Tambahan ========== -->
-
-    <div class="form-actions" style="margin-top:10px">
-      <button class="btn" type="submit">💾 Simpan</button>
-      <a class="btn" href="{{ url_for('minutes_bp.transcript_minutes', tid=tid) }}">↩ Kembali</a>
-    </div>
+<section class="card mt">
+  <h2 class="card-title"><span class="ico">{{ icon('file') }}</span> Logo kop surat</h2>
+  <form method="post" action="{{ url_for('minutes_bp.upload_logo') }}" enctype="multipart/form-data" class="actions" style="margin-top:12px">
+    <input type="file" name="logo" accept="image/*" required style="max-width:340px">
+    <input type="hidden" name="redirect" value="{{ request.path }}">
+    <button class="btn" type="submit">{{ icon('upload') }} Unggah logo</button>
+    {% if meta.logo %}<img src="{{ meta.logo }}" alt="Logo" style="height:48px">{% endif %}
   </form>
 </section>
 
-<style>
-.form-grid label{ display:block; margin-bottom:10px; }
-.form-grid input, .form-grid textarea{
-  width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;
-}
-.grid2{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
-.inline{ display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
-.muted{ color:#6b7280; font-size:0.95em; }
-</style>
+<form method="post" action="{{ url_for('minutes_bp.minutes_edit_save', tid=tid) }}" class="form">
+  <section class="card">
+    <h2 class="card-title"><span class="ico">{{ icon('pen') }}</span> Kop &amp; dokumen</h2>
+    <div class="form mt">
+      <div class="field"><label>Instansi / kop surat <span class="muted small">(satu baris per teks, baris terakhir dicetak lebih besar)</span></label>
+        <textarea name="instansi" rows="3">{{ meta.instansi }}</textarea></div>
+      <div class="field"><label>Alamat / kontak</label>
+        <input type="text" name="alamat" value="{{ meta.alamat }}"></div>
+      <div class="field"><label>Logo (otomatis terisi setelah unggah)</label>
+        <input type="text" name="logo" value="{{ meta.logo }}" placeholder="/uploads/logo_xxx.png"></div>
+      <div class="row">
+        <div class="field"><label>Judul dokumen</label><input type="text" name="judul" value="{{ meta.judul }}"></div>
+        <div class="field"><label>Nomor</label><input type="text" name="nomor" value="{{ meta.nomor }}"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span class="ico">{{ icon('list') }}</span> Data rapat</h2>
+    <div class="form mt">
+      <div class="row">
+        <div class="field"><label>Hari</label><input type="text" name="hari" value="{{ meta.hari }}" placeholder="otomatis dari tanggal rekaman"></div>
+        <div class="field"><label>Tanggal</label><input type="text" name="tanggal" value="{{ meta.tanggal }}" placeholder="contoh: 8 November 2026"></div>
+        <div class="field"><label>Waktu</label><input type="text" name="waktu" value="{{ meta.waktu }}" placeholder="09.00 WIB s/d selesai"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Tempat</label><input type="text" name="tempat" value="{{ meta.tempat }}"></div>
+        <div class="field"><label>Acara</label><input type="text" name="acara" value="{{ meta.acara }}" placeholder="default: Rapat {{ tr['program'] }}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Pimpinan rapat</label><input type="text" name="pimpinan" value="{{ meta.pimpinan }}"></div>
+        <div class="field"><label>Notulis</label><input type="text" name="notulis" value="{{ meta.notulis }}"></div>
+      </div>
+      <div class="field"><label>Peserta rapat <span class="muted small">(satu nama per baris)</span></label>
+        <textarea name="peserta" rows="5" placeholder="Nama - Jabatan">{{ meta.peserta }}</textarea></div>
+      <div class="field"><label>Kalimat penutup</label>
+        <textarea name="penutup" rows="2" placeholder="Demikian notulen rapat ini dibuat untuk dapat dipergunakan sebagaimana mestinya.">{{ meta.penutup }}</textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span class="ico">{{ icon('pen') }}</span> Penanda tangan</h2>
+    <div class="form mt">
+      <div class="row">
+        <div class="field"><label>Kota</label><input type="text" name="ttd_kota" value="{{ meta.ttd_kota }}"></div>
+        <div class="field"><label>Tanggal tanda tangan</label><input type="text" name="ttd_tanggal" value="{{ meta.ttd_tanggal }}" placeholder="kosong = tanggal rapat"></div>
+      </div>
+      <div class="field"><label>Jabatan</label><input type="text" name="ttd_jabatan" value="{{ meta.ttd_jabatan }}"></div>
+      <div class="row">
+        <div class="field"><label>Nama</label><input type="text" name="ttd_nama" value="{{ meta.ttd_nama }}"></div>
+        <div class="field"><label>Pangkat / golongan</label><input type="text" name="ttd_pangkat" value="{{ meta.ttd_pangkat }}"></div>
+        <div class="field"><label>NIP</label><input type="text" name="ttd_nip" value="{{ meta.ttd_nip }}"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span class="ico">{{ icon('sparkle') }}</span> Kata kunci tambahan <span class="muted small" style="font-weight:400">(opsional)</span></h2>
+    <p class="card-sub">Pisahkan dengan koma, contoh: <i>pengesahan KUA PPAS, menetapkan pagu</i>.</p>
+    <div class="row">
+      <div class="field"><label>Keputusan</label><textarea name="kw_keputusan" rows="2">{{ (meta.kw_keputusan or [])|join(', ') }}</textarea></div>
+      <div class="field"><label>Tindak lanjut</label><textarea name="kw_tindak_lanjut" rows="2">{{ (meta.kw_tindak_lanjut or [])|join(', ') }}</textarea></div>
+      <div class="field"><label>Isu / kendala</label><textarea name="kw_isu" rows="2">{{ (meta.kw_isu or [])|join(', ') }}</textarea></div>
+      <div class="field"><label>Arahan</label><textarea name="kw_arahan" rows="2">{{ (meta.kw_arahan or [])|join(', ') }}</textarea></div>
+    </div>
+  </section>
+
+  <div class="actions" style="margin-top:0">
+    <button class="btn btn-primary" type="submit">{{ icon('check') }} Simpan pengaturan</button>
+    <a class="btn" href="{{ url_for('minutes_bp.transcript_minutes', tid=tid) }}">{{ icon('back') }} Kembali ke notulen</a>
+  </div>
+</form>
+
+{# ===================== TANDA TANGAN DIGITAL ===================== #}
+<section class="card" id="ttd" style="scroll-margin-top:80px">
+  <h2 class="card-title"><span class="ico">{{ icon('pen') }}</span> Tanda tangan digital</h2>
+  <p class="card-sub">Gambar tanda tangan langsung di layar (mouse, layar sentuh, atau pena) atau unggah foto tanda tangan. Latar putih otomatis dihapus dan hasilnya dipasang di notulen &amp; DOCX.</p>
+
+  <div class="grid grid-2">
+    <div>
+      <div class="tabs no-print">
+        <div class="seg">
+          <label><input type="radio" name="sigmode" value="draw" checked><span>{{ icon('pen') }} Gambar</span></label>
+          <label><input type="radio" name="sigmode" value="upload"><span>{{ icon('upload') }} Unggah gambar</span></label>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="p-draw">
+        <div class="sigpad-wrap" id="sigwrap"><canvas id="sig"></canvas></div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="sigSave">{{ icon('check') }} Simpan tanda tangan</button>
+          <button type="button" class="btn" id="sigClear">{{ icon('x') }} Hapus coretan</button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="p-upload" hidden>
+        <div class="field">
+          <label for="sigfile">Foto / scan tanda tangan (PNG, JPG)</label>
+          <input type="file" id="sigfile" accept="image/*">
+          <div class="hint">Tanda tangan di kertas putih, foto dengan cahaya rata supaya latar bersih.</div>
+        </div>
+        <div class="actions"><button type="button" class="btn btn-primary" id="sigUp">{{ icon('upload') }} Unggah &amp; pasang</button></div>
+      </div>
+      <p class="small muted mt" id="sigMsg" role="status"></p>
+    </div>
+
+    <div>
+      <div class="lbl">Tanda tangan saat ini</div>
+      <div class="sig-preview">
+        {% if meta.ttd_image %}
+          <img src="{{ meta.ttd_image }}?t={{ meta.ttd_signed_at }}" alt="Tanda tangan digital">
+        {% else %}
+          <span class="muted">Belum ada tanda tangan digital</span>
+        {% endif %}
+      </div>
+      {% if meta.ttd_image %}
+        <p class="small muted mt">Dipasang {{ meta.ttd_signed_at }}</p>
+        <form method="post" action="{{ url_for('minutes_bp.minutes_signature_delete', tid=tid) }}" class="mt"
+              onsubmit="return confirm('Hapus tanda tangan digital?')">
+          <button class="btn btn-danger btn-sm" type="submit">{{ icon('trash') }} Hapus tanda tangan</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const SAVE_URL = "{{ url_for('minutes_bp.minutes_signature_save', tid=tid) }}";
+  const cv = document.getElementById('sig'), wrap = document.getElementById('sigwrap');
+  const ctx = cv.getContext('2d'), msg = document.getElementById('sigMsg');
+  let drawing = false, dirty = false, last = null;
+
+  function resize() {
+    const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    const keep = dirty ? cv.toDataURL() : null;
+    cv.width = r.width * d; cv.height = r.height * d;
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0b1f66';
+    if (keep) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, r.width, r.height); im.src = keep; }
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  const pos = e => { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId); drawing = true; last = pos(e);
+    ctx.beginPath(); ctx.arc(last.x, last.y, 1.2, 0, 7); ctx.fillStyle = '#0b1f66'; ctx.fill();
+    dirty = true; wrap.classList.add('has-ink');
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!drawing) return;
+    const p = pos(e), mid = {x: (last.x + p.x) / 2, y: (last.y + p.y) / 2};
+    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.quadraticCurveTo(last.x, last.y, mid.x, mid.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+    last = p;
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(t => cv.addEventListener(t, () => drawing = false));
+
+  document.getElementById('sigClear').onclick = () => {
+    ctx.clearRect(0, 0, cv.width, cv.height); dirty = false; wrap.classList.remove('has-ink'); msg.textContent = '';
+  };
+
+  async function send(fd) {
+    msg.textContent = 'Menyimpan…';
+    try {
+      const r = await fetch(SAVE_URL, {method: 'POST', body: fd});
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'Gagal menyimpan');
+      msg.textContent = 'Tersimpan ✓'; location.hash = '#ttd'; location.reload();
+    } catch (err) { msg.textContent = '✗ ' + err.message; }
+  }
+  document.getElementById('sigSave').onclick = () => {
+    if (!dirty) { msg.textContent = 'Silakan tanda tangan dulu pada kotak.'; return; }
+    const fd = new FormData(); fd.append('data', cv.toDataURL('image/png')); send(fd);
+  };
+  document.getElementById('sigUp').onclick = () => {
+    const f = document.getElementById('sigfile').files[0];
+    if (!f) { msg.textContent = 'Pilih file gambar dulu.'; return; }
+    const fd = new FormData(); fd.append('file', f); send(fd);
+  };
+
+  document.querySelectorAll('input[name=sigmode]').forEach(r => r.addEventListener('change', () => {
+    const up = document.querySelector('input[name=sigmode]:checked').value === 'upload';
+    document.getElementById('p-draw').hidden = up; document.getElementById('p-upload').hidden = !up;
+    if (!up) resize();
+  }));
+})();
+</script>
 {% endblock %}

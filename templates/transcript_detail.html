@@ -1,39 +1,37 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ tr['program'] }}{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>📄 Transkrip – {{ tr['program'] }}</h2>
-  <div class="muted">{{ tr['created_at'] }} • File: {{ tr['filename'] }}</div>
+<div class="page-head">
+  <div class="crumbs"><a href="{{ url_for('main.transcripts') }}">Transkrip</a> / {{ tr['program'] }}</div>
+  <h1>{{ tr['program'] }}</h1>
+  <p>{{ tr['created_at'] }} · {{ tr['filename'] }}</p>
+</div>
+
+<section class="card mt">
+  <div class="actions" style="margin-top:0">
+    <a class="btn btn-primary" href="{{ url_for('minutes_bp.transcript_minutes', tid=tr['id']) }}">{{ icon('file') }} Jadikan notulen</a>
+    <a class="btn" href="{{ url_for('editor_bp.transcript_edit', tid=tr['id']) }}">{{ icon('pen') }} Edit &amp; cetak</a>
+    <form method="post" action="{{ url_for('transcription.transcript_clean', tid=tr['id']) }}">
+      <button class="btn" type="submit">{{ icon('broom') }} Bersihkan teks</button>
+    </form>
+    <form method="post" action="{{ url_for('transcription.transcript_delete', tid=tr['id']) }}"
+          onsubmit="return confirm('Yakin mau hapus transkrip ini?')">
+      <button class="btn btn-danger" type="submit">{{ icon('trash') }} Hapus</button>
+    </form>
+  </div>
 
   {% if tr['summary'] %}
-    <h3>🧾 Ringkasan</h3>
+    <h3 class="section-title">{{ icon('sparkle') }} Ringkasan</h3>
     <pre class="pre">{{ tr['summary'] }}</pre>
   {% endif %}
 
-  {# === Teks Bersih / Tombol bersihkan === #}
   {% if tr['cleaned_transcript'] %}
-    <h3>✨ Teks Bersih</h3>
+    <h3 class="section-title">{{ icon('check') }} Teks bersih</h3>
     <pre class="pre">{{ tr['cleaned_transcript'] }}</pre>
-  {% else %}
-    <div class="actions">
-      <form method="post"
-            action="{{ url_for('transcription.transcript_delete', tid=tr['id']) }}"
-            onsubmit="return confirm('Yakin mau hapus transkrip ini?')">
-        <button class="btn btn-danger" type="submit">🗑 Hapus Transkrip</button>
-      </form>
-
-      <form method="post" action="{{ url_for('transcription.transcript_clean', tid=tr['id']) }}">
-        <button class="btn" type="submit">✨ Bersihkan Transkrip</button>
-      </form>
-    </div>
   {% endif %}
 
-  <h3>📝 Teks Lengkap</h3>
+  <h3 class="section-title">{{ icon('file') }} Teks asli</h3>
   <pre class="pre">{{ tr['transcript'] }}</pre>
-
-  <p class="actions">
-    <a class="btn" href="{{ url_for('minutes_bp.transcript_minutes', tid=tr['id']) }}">🧾 Jadikan Notulen</a>
-    <a class="btn" href="{{ url_for('editor_bp.transcript_edit', tid=tr['id']) }}">✏️ Edit & Cetak</a>
-    <a class="btn" href="{{ url_for('main.transcripts') }}">↩ Kembali</a>
-  </p>
 </section>
 {% endblock %}

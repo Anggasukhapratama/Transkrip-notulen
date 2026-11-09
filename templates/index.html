@@ -1,88 +1,132 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
 
-<div class="home-stack">
+<section class="hero">
+  <h1>Ubah rekaman rapat jadi notulen resmi</h1>
+  <p>Unggah audio, biarkan sistem menyalin ucapan menjadi teks, lalu susun notulen siap cetak lengkap dengan tanda tangan digital.</p>
+  <div class="chips">
+    <span class="chip">{{ icon('zap') }} Mesin: {{ engine.backend }}</span>
+    {% if engine.cuda %}
+      <span class="chip"><span class="dot" style="color:#4ade80"></span> GPU aktif{% if engine.gpu_name %}: {{ engine.gpu_name }}{% endif %}</span>
+    {% elif engine.gpu_detected %}
+      <span class="chip" title="{{ engine.gpu_broken_reason }}"><span class="dot" style="color:#fbbf24"></span> GPU {{ engine.gpu_name }} terdeteksi, library CUDA belum siap → memakai CPU</span>
+    {% else %}
+      <span class="chip">{{ icon('cpu') }} CPU · {{ engine.cpu_threads }} thread</span>
+    {% endif %}
+    <span class="chip">{{ icon('file') }} {{ total }} transkrip tersimpan</span>
+  </div>
+</section>
+
+<div class="layout-main mt-lg">
   <section class="card">
-    <h2>🎙️ Upload & Transkrip Siaran (STT)</h2>
-    <p class="muted">Unggah rekaman (wav/mp3/m4a/ogg...) untuk ditranskrip otomatis.</p>
+    <h2 class="card-title"><span class="ico">{{ icon('upload') }}</span> Transkrip rekaman baru</h2>
+    <p class="card-sub">Mendukung wav, mp3, m4a, aac, flac, dan ogg.</p>
 
-    <form action="{{ url_for('transcription.transcribe') }}" method="post" enctype="multipart/form-data" class="form-grid">
-      <div class="form-group">
-        <label for="program">Nama Acara/Program</label>
-        <input id="program" type="text" name="program" placeholder="Contoh: Berita Pagi" required>
+    <form action="{{ url_for('transcription.transcribe') }}" method="post" enctype="multipart/form-data" class="form" id="upform">
+      <div class="field">
+        <label for="program">Nama rapat / acara</label>
+        <input id="program" type="text" name="program" placeholder="Contoh: Rapat Paripurna APBD" required>
       </div>
 
-      <div class="form-group">
-        <label for="audio">File Audio</label>
-        <input id="audio" type="file" name="audio" accept="audio/*" required>
-      </div>
-
-      <fieldset class="form-group">
-        <legend>Mode Pemilihan Model</legend>
-        <div class="inline">
-          <label class="radio">
-            <input type="radio" name="mode" value="auto" checked>
-            <span>Otomatis (≤30m: small, &gt;30m: medium)</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="mode" value="manual">
-            <span>Manual</span>
-          </label>
-          <select name="model_choice" aria-label="Pilih model (jika Manual)">
-            <option value="tiny">tiny (sangat cepat, akurasi rendah)</option>
-            <option value="base">base (cepat, akurasi cukup)</option>
-            <option value="small" selected>small (seimbang)</option>
-            <option value="medium">medium (lebih akurat, lebih lambat)</option>
-          </select>
+      <div class="field">
+        <label>File audio</label>
+        <div class="dropzone" id="dz">
+          <input id="audio" type="file" name="audio" accept="audio/*,.m4a,.aac,.flac,.ogg,.wav,.mp3" required>
+          <div class="dz-ico">{{ icon('upload', 'i-lg') }}</div>
+          <b>Klik atau seret file audio ke sini</b>
+          <span class="muted small">Ukuran besar pun tidak masalah</span>
+          <div class="dz-file" id="dzfile"></div>
         </div>
+      </div>
+
+      <fieldset class="field">
+        <legend>Perangkat pemroses</legend>
+        <div class="seg">
+          <label><input type="radio" name="device" value="auto" checked><span>{{ icon('zap') }} Otomatis</span></label>
+          <label><input type="radio" name="device" value="cpu"><span>{{ icon('cpu') }} CPU</span></label>
+          <label><input type="radio" name="device" value="cuda"><span>{{ icon('zap') }} GPU</span></label>
+        </div>
+        <div class="hint">Otomatis memakai GPU bila tersedia, kalau gagal otomatis pindah ke CPU.</div>
       </fieldset>
 
-      <div class="form-group inline">
-        <label class="check">
-          <input type="checkbox" name="chunk">
-          <span>Potong otomatis tiap 10 menit (disarankan untuk rekaman panjang)</span>
-        </label>
+      <div class="row">
+        <fieldset class="field">
+          <legend>Kecepatan vs akurasi</legend>
+          <div class="seg">
+            <label><input type="radio" name="quality" value="fast" checked><span>Cepat</span></label>
+            <label><input type="radio" name="quality" value="accurate"><span>Akurat</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Model</legend>
+          <div class="seg" style="margin-bottom:8px">
+            <label><input type="radio" name="mode" value="auto" checked><span>Otomatis</span></label>
+            <label><input type="radio" name="mode" value="manual"><span>Manual</span></label>
+          </div>
+          <select name="model_choice" id="model_choice" aria-label="Pilih model" disabled>
+            <option value="tiny">tiny — tercepat, akurasi rendah</option>
+            <option value="base">base — cepat, cukup akurat</option>
+            <option value="small" selected>small — seimbang (disarankan)</option>
+            <option value="medium">medium — akurat, lebih lambat</option>
+            <option value="large-v3">large-v3 — paling akurat, butuh GPU kuat</option>
+          </select>
+        </fieldset>
       </div>
 
-      <div class="form-actions">
-        <button class="btn" type="submit">Transkrip Sekarang</button>
-      </div>
+      <label class="check">
+        <input type="checkbox" name="summary" checked>
+        <span>Buat ringkasan otomatis<br><span class="muted small" style="font-weight:400">Poin-poin penting dari isi rapat.</span></span>
+      </label>
+
+      <button class="btn btn-primary btn-block" type="submit">{{ icon('mic') }} Mulai transkrip</button>
     </form>
 
     {% if cp %}
-      <p class="hint">
-        🔴 Sedang tayang: <b>{{ cp[0] }}</b>{% if cp[1] %} (host: {{ cp[1] }}){% endif %}
-      </p>
+      <p class="muted small mt">Sedang tayang: <b>{{ cp[0] }}</b>{% if cp[1] %} (host: {{ cp[1] }}){% endif %}</p>
     {% endif %}
   </section>
 
   <section class="card">
-    <h2>📚 Transkrip Terbaru</h2>
+    <h2 class="card-title"><span class="ico">{{ icon('clock') }}</span> Transkrip terbaru</h2>
+    <p class="card-sub">8 rekaman terakhir.</p>
     {% if transcripts %}
+      <div class="table-wrap">
       <table class="table">
-        <thead>
-          <tr>
-            <th>Waktu</th>
-            <th>Program</th>
-            <th>File</th>
-            <th></th>
-          </tr>
-        </thead>
         <tbody>
         {% for t in transcripts %}
           <tr>
-            <td class="muted">{{ t['created_at'] }}</td>
-            <td>{{ t['program'] }}</td>
-            <td class="muted">{{ t['filename'] }}</td>
-            <td><a href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}">Lihat</a></td>
+            <td>
+              <a href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}"><b>{{ t['program'] }}</b></a>
+              <div class="muted small">{{ t['created_at'] }}</div>
+            </td>
+            <td style="text-align:right"><a class="btn btn-sm" href="{{ url_for('minutes_bp.transcript_minutes', tid=t['id']) }}">Notulen</a></td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
+      <div class="actions"><a href="{{ url_for('main.transcripts') }}">Lihat semua →</a></div>
     {% else %}
-      <div class="muted">Belum ada transkrip.</div>
+      <div class="empty">{{ icon('file') }}<div>Belum ada transkrip.<br>Unggah rekaman pertama Anda.</div></div>
     {% endif %}
   </section>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script>
+  const dz = document.getElementById('dz'), inp = document.getElementById('audio'), nm = document.getElementById('dzfile');
+  inp.addEventListener('change', () => { nm.textContent = inp.files[0] ? '✓ ' + inp.files[0].name : ''; });
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, () => dz.classList.add('drag')));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('drag')));
+  const sel = document.getElementById('model_choice');
+  document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', () => {
+    sel.disabled = document.querySelector('input[name=mode]:checked').value !== 'manual';
+  }));
+  document.getElementById('upform').addEventListener('submit', e => {
+    const b = e.target.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Mengunggah…';
+  });
+</script>
 {% endblock %}

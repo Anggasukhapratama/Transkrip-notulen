@@ -1,3 +1,4 @@
+from markupsafe import escape
 from flask import render_template, abort, redirect, url_for, flash, request
 # Impor relatif dari package routes
 from . import editor_bp
@@ -20,7 +21,7 @@ def transcript_edit(tid: int):
         paras = []
         for line in row["transcript"].splitlines():
             line = line.strip()
-            paras.append(f"<p>{line or '&nbsp;'}</p>")
+            paras.append(f"<p>{escape(line) if line else '&nbsp;'}</p>")
         html = "\n".join(paras)
     return render_template("transcript_edit.html", tr=row, html=html)
 

@@ -1,23 +1,33 @@
 {% extends "_base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Semua Transkrip{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>📚 Semua Transkrip</h2>
+<div class="page-head">
+  <h1>Semua transkrip</h1>
+  <p>Daftar seluruh rekaman yang sudah ditranskrip.</p>
+</div>
+<section class="card mt">
   {% if rows %}
+    <div class="table-wrap">
     <table class="table">
       <thead><tr><th>Waktu</th><th>Program</th><th>File</th><th></th></tr></thead>
       <tbody>
       {% for t in rows %}
         <tr>
-          <td class="muted">{{ t['created_at'] }}</td>
-          <td>{{ t['program'] }}</td>
-          <td class="muted">{{ t['filename'] }}</td>
-          <td><a href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}">Lihat</a></td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="muted">Belum ada data.</div>
-    {% endif %}
+          <td class="muted" style="white-space:nowrap">{{ t['created_at'] }}</td>
+          <td><b>{{ t['program'] }}</b></td>
+          <td class="muted small">{{ t['filename'] }}</td>
+          <td style="text-align:right;white-space:nowrap">
+            <a class="btn btn-sm" href="{{ url_for('transcription.transcript_detail', tid=t['id']) }}">Buka</a>
+            <a class="btn btn-sm btn-primary" href="{{ url_for('minutes_bp.transcript_minutes', tid=t['id']) }}">Notulen</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% else %}
+    <div class="empty">{{ icon('file') }}<div>Belum ada data.</div></div>
+  {% endif %}
 </section>
 {% endblock %}

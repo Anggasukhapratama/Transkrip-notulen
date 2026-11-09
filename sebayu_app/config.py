@@ -20,7 +20,7 @@ INSTANCE_DIR.mkdir(exist_ok=True)
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 WHISPER_DEVICE  = os.environ.get("WHISPER_DEVICE", "auto")       # auto|cuda|cpu
-WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "float16")   # float16|int8_float16|int8
+WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "auto")      # auto|float16|int8_float16|int8
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -51,11 +51,18 @@ DEFAULT_META = {
     "notulis": "",
     "logo": "",
     "kop_html": "",
-    # === BARU: Field untuk tanda tangan yang lebih detail ===
+    "acara": "",
+    "peserta": "",      # satu nama per baris
+    "penutup": "",
+    # === Field untuk tanda tangan yang lebih detail ===
+    "ttd_kota": "Tegal",
+    "ttd_tanggal": "",  # kosong = pakai tanggal rapat
     "ttd_jabatan": "SEKRETARIS DPRD KOTA TEGAL",
     "ttd_nama": "",
-    "ttd_pangkat": "", # Tambah field untuk Pangkat/Golongan
-    "ttd_nip": "",     # Tambah field untuk NIP
+    "ttd_pangkat": "", # Pangkat/Golongan
+    "ttd_nip": "",     # NIP
+    "ttd_image": "",   # tanda tangan digital (PNG transparan) -> /uploads/ttd_xxx.png
+    "ttd_signed_at": "",
     # === Kata kunci custom (opsional) ===
     "kw_keputusan": [],
     "kw_tindak_lanjut": [],
