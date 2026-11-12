@@ -91,7 +91,18 @@ def minutes_edit(tid: int):
     logo_qs = request.args.get("logo")
     if logo_qs and logo_qs.startswith("/uploads/"):
         meta["logo"] = logo_qs
-    return render_template("minutes_edit.html", tid=tid, tr=row, meta=meta)
+    data = build_minutes_data(dict(row), meta)
+    return render_template("minutes_edit.html", tid=tid, tr=row, meta=meta, data=data)
+
+
+def _clean_point_lines(raw: str) -> list[str]:
+    import re
+    out = []
+    for ln in (raw or "").splitlines():
+        s = re.sub(r"^\s*(?:\d+[\.\)]\s*|[•\-\*]\s*)", "", ln).strip()
+        if s:
+            out.append(s)
+    return out
 
 
 @minutes_bp.post("/transcripts/<int:tid>/minutes/edit")
@@ -106,6 +117,29 @@ def minutes_edit_save(tid: int):
     for k in fields:
         if k in request.form:
             meta[k] = (request.form.get(k) or "").strip()
+
+    # Simpan perubahan manual isi poin notulen & tabel tindak lanjut
+    if any(k in request.form for k in ("isi_pembahasan", "isi_arahan", "isi_isu", "isi_keputusan", "tl_text")):
+        ai_min = dict(meta.get("_ai_minutes") or {})
+        ai_min["_edited"] = True
+        ai_min["pembahasan"] = _clean_point_lines(request.form.get("isi_pembahasan") or "")
+        ai_min["arahan"] = _clean_point_lines(request.form.get("isi_arahan") or "")
+        ai_min["isu"] = _clean_point_lines(request.form.get("isi_isu") or "")
+        ai_min["keputusan"] = _clean_point_lines(request.form.get("isi_keputusan") or "")
+
+        tl_texts = request.form.getlist("tl_text")
+        tl_pics = request.form.getlist("tl_pic")
+        tl_dues = request.form.getlist("tl_due")
+        tl_list = []
+        for idx, txt in enumerate(tl_texts):
+            t_clean = (txt or "").strip()
+            if not t_clean:
+                continue
+            pic_clean = (tl_pics[idx] if idx < len(tl_pics) else "").strip() or "-"
+            due_clean = (tl_dues[idx] if idx < len(tl_dues) else "").strip() or "-"
+            tl_list.append({"text": t_clean, "pic": pic_clean, "due": due_clean})
+        ai_min["tindak_lanjut"] = tl_list
+        meta["_ai_minutes"] = ai_min
 
     for key in ["kw_keputusan", "kw_tindak_lanjut", "kw_isu", "kw_arahan", "kw_catatan"]:
         raw = (request.form.get(key) or "").strip()

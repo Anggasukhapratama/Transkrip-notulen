@@ -58,6 +58,60 @@
     </div>
   </section>
 
+  <section class="card" id="isi-notulen" style="scroll-margin-top:80px">
+    <h2 class="card-title"><span class="ico">{{ icon('file') }}</span> Isi Poin Notulen &amp; Tabel Tindak Lanjut</h2>
+    <p class="card-sub">Ubah, tambah, atau hapus poin hasil ekstraksi AI sebelum diunduh ke DOCX / PDF. Tulis satu poin per baris.</p>
+    <div class="form mt">
+      <div class="field">
+        <label>Pokok Pembahasan <span class="muted small">(satu poin per baris)</span></label>
+        <textarea name="isi_pembahasan" rows="5" placeholder="Tulis satu poin pembahasan per baris">{{ (data.pembahasan or [])|join('\n') }}</textarea>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Arahan Pimpinan <span class="muted small">(satu poin per baris)</span></label>
+          <textarea name="isi_arahan" rows="4" placeholder="Kosongkan bila tidak ada">{{ (data.arahan or [])|join('\n') }}</textarea>
+        </div>
+        <div class="field">
+          <label>Isu / Kendala <span class="muted small">(satu poin per baris)</span></label>
+          <textarea name="isi_isu" rows="4" placeholder="Kosongkan bila tidak ada">{{ (data.isu or [])|join('\n') }}</textarea>
+        </div>
+      </div>
+      <div class="field">
+        <label>Keputusan Rapat <span class="muted small">(satu poin per baris)</span></label>
+        <textarea name="isi_keputusan" rows="4" placeholder="Tulis satu keputusan rapat per baris">{{ (data.keputusan or [])|join('\n') }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Tabel Tindak Lanjut (Uraian Tugas, PIC / Penanggung Jawab, &amp; Batas Waktu)</label>
+        <div class="table-wrap" style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;background:var(--surface-2)">
+          <table class="table" id="tl-table">
+            <thead>
+              <tr>
+                <th style="width:52%">Uraian Tindak Lanjut</th>
+                <th style="width:22%">PIC / Penanggung Jawab</th>
+                <th style="width:20%">Batas Waktu</th>
+                <th style="width:6%"></th>
+              </tr>
+            </thead>
+            <tbody id="tl-body">
+              {% for it in (data.tindak_lanjut or [{'text':'','pic':'','due':''}]) %}
+              <tr>
+                <td><input type="text" name="tl_text" value="{{ it.text }}" placeholder="Uraian tugas / tindak lanjut…"></td>
+                <td><input type="text" name="tl_pic" value="{{ '' if it.pic == '-' else it.pic }}" placeholder="Nama / Bagian"></td>
+                <td><input type="text" name="tl_due" value="{{ '' if it.due == '-' else it.due }}" placeholder="Contoh: 15 Nov 2026"></td>
+                <td style="text-align:center"><button type="button" class="btn btn-danger btn-sm" onclick="removeTlRow(this)" title="Hapus baris">{{ icon('x') }}</button></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div style="margin-top:10px">
+            <button type="button" class="btn btn-sm" onclick="addTlRow()">+ Tambah baris tindak lanjut</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="card">
     <h2 class="card-title"><span class="ico">{{ icon('pen') }}</span> Penanda tangan</h2>
     <div class="form mt">
@@ -147,6 +201,26 @@
 
 {% block scripts %}
 <script>
+function addTlRow() {
+  const tbody = document.getElementById('tl-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" name="tl_text" placeholder="Uraian tugas / tindak lanjut…"></td>
+    <td><input type="text" name="tl_pic" placeholder="Nama / Bagian"></td>
+    <td><input type="text" name="tl_due" placeholder="Contoh: 15 Nov 2026"></td>
+    <td style="text-align:center"><button type="button" class="btn btn-danger btn-sm" onclick="removeTlRow(this)" title="Hapus baris"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelector('input').focus();
+}
+function removeTlRow(btn) {
+  const tbody = document.getElementById('tl-body');
+  if (tbody.rows.length > 1) {
+    btn.closest('tr').remove();
+  } else {
+    tbody.rows[0].querySelectorAll('input').forEach(inp => inp.value = '');
+  }
+}
 (() => {
   const SAVE_URL = "{{ url_for('minutes_bp.minutes_signature_save', tid=tid) }}";
   const cv = document.getElementById('sig'), wrap = document.getElementById('sigwrap');

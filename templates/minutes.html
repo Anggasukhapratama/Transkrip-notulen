@@ -16,6 +16,7 @@
     <button class="btn" type="submit">{{ icon('sparkle') }} Koreksi &amp; Susun dengan AI</button>
   </form>
   <button class="btn" onclick="window.print()">{{ icon('print') }} Cetak / simpan PDF</button>
+  <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}#isi-notulen">{{ icon('pen') }} Edit Isi &amp; Tabel</a>
   <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}">{{ icon('pen') }} Atur kop &amp; data rapat</a>
   <a class="btn" href="{{ url_for('minutes_bp.minutes_edit', tid=tr['id']) }}#ttd">{{ icon('pen') }} Tanda tangan digital</a>
   <a class="btn" href="{{ url_for('transcription.transcript_detail', tid=tr['id']) }}">{{ icon('back') }} Transkrip</a>

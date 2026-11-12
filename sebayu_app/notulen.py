@@ -366,22 +366,25 @@ def build_minutes_data(tr: dict, meta: dict | None) -> dict:
     custom = {k: v for k, v in custom.items() if v}
     sec = extract_sections(tr.get("transcript", ""), custom)
 
-    # Gunakan hasil koreksi AI (_ai_minutes) bila tersedia
+    # Gunakan hasil koreksi AI / edit manual (_ai_minutes) bila tersedia
     ai_min = m.get("_ai_minutes")
     if isinstance(ai_min, dict):
+        is_edited = bool(ai_min.get("_edited"))
         for k in ("pembahasan", "keputusan", "arahan", "isu"):
-            if isinstance(ai_min.get(k), list) and ai_min[k]:
-                sec[k] = [str(x).strip() for x in ai_min[k] if str(x).strip()]
-        if isinstance(ai_min.get("tindak_lanjut"), list) and ai_min["tindak_lanjut"]:
+            val = ai_min.get(k)
+            if isinstance(val, list) and (val or is_edited):
+                sec[k] = [str(x).strip() for x in val if str(x).strip()]
+        tl_val = ai_min.get("tindak_lanjut")
+        if isinstance(tl_val, list) and (tl_val or is_edited):
             tl = []
-            for it in ai_min["tindak_lanjut"]:
+            for it in tl_val:
                 if isinstance(it, dict) and str(it.get("text") or "").strip():
                     tl.append({
                         "text": str(it["text"]).strip(),
                         "pic": str(it.get("pic") or "-").strip() or "-",
                         "due": str(it.get("due") or "-").strip() or "-",
                     })
-            if tl:
+            if tl or is_edited:
                 sec["tindak_lanjut"] = tl
 
     tgl = m.get("tanggal") or tanggal_id(dt)
